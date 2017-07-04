@@ -1,3 +1,6 @@
+<?php
+>
+
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -24,7 +27,7 @@
   </head>
 
   <body style="padding-top:50px;">
-
+    <!-- TODO: Custom navbar colour - need custom stylesheet -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
@@ -37,9 +40,6 @@
           <a class="navbar-brand" href="#">LUSTRE</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-          </ul>
             <form class="navbar-form navbar-left">
                 <div class="form-group">
                     <input type="text" class="form-control" placeholder="Search: Find projects here!">
@@ -47,7 +47,11 @@
                 <button type="submit" class="btn btn-default">Submit</button>
             </form>
             <ul class="nav navbar-nav navbar-right">
+                <!-- TODO: Dynamic login text -->
                 <li class="active"><a href="#">Login</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#">Contact</a></li>
             </ul>
         </div><!--/.nav-collapse -->
       </div>
