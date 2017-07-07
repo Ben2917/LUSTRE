@@ -8,4 +8,4 @@ Aenean sit amet lorem interdum, iaculis arcu vel, ultricies est. Aliquam sceleri
 
 <b>Technologies Used:</b></br>
 Bootstrap - MIT License</br>
-TBD archiving system back end</br>
+Omeka - GNU GPL 3</br>
