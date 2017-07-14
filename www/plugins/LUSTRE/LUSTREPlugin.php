@@ -3,7 +3,6 @@
 /**
  * LUSTRE Meta Data Plugin
  */
-
 class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
 
     /**
@@ -24,7 +23,6 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
             'name'        => 'LUSTRE', 
             'description' => 'Adds LUSTRE specific project information'
         );
-
         $elements = array(
         array(
             'name'  =>  'Supervisor',
@@ -40,22 +38,20 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
         ),
         array(
             'name' => 'Statistical Analysis Type',
-            'description' => 'Type of statistical analysis used'
+            'description' => 'The type of statistical analysis used in the project'
         ),
         array(
             'name' => 'Sample Size'
-        ));
-            
+        ));         
         insert_element_set($elementSetMetadata, $elements);
     }  
 
     /**
     * Uninstall the plugin
     */
-    public function hookUninstall()
-    {
+    public function hookUninstall() {
         $db = get_db();
-        $elementSet = get_db()->getTable('ElementSet')->findByName('Book');
+        $elementSet = get_db()->getTable('ElementSet')->findByName('LUSTRE');
         $elementSet->delete();
     }
 
@@ -63,8 +59,7 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
     * After saving an item with data in the LUSTRE Element Set values are automatically
     * mapped on the Dublin Core Element Set. Preexisting DC values are deleted
     */
-    public function hookAfterSaveItem($args)
-    {   
+    public function hookAfterSaveItem($args) {   
         $item = $args['record'];
         $id = $item['id'];
         $db = get_db();
@@ -121,9 +116,15 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
                 $html =  $db -> fetchOne($htmlSelect);
 
 
-                if ($lustreField == 'Supervisor' or $lustreField == 'Project Level'
-                    or $lustreField == 'Statistical Analysis Type') {
+                if ($lustreField == 'Supervisor' or $lustreField == 'Project Level' or
+                    $lustreField == 'Statistical Analysis Type') {
                     // Call function to map fields to 'Identifier' DC field    
+                    $dcElementValues = array(
+                        'record_id' => $id, 'record_type' => 'Item',
+                        'element_id' => $dcID, 'html' => $html,
+                        'text' => $lustreElementText
+                    );
+                    $db->insert('element texts', $dcElementValues);
                 }
                 else if ($lustreField == 'Topic' or $lustreField == 'Sample Size') {
                     // Call function to map field to 'Type' DC field
@@ -157,8 +158,8 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
     * Returns true if any LUSTRE fields have been filled out. False otherwise.
     */
     public function lustreFieldsFilled($item){
-        $lustreElementFields = array('Supervisor', 'Project Level', 
-            'Topic', 'Sample Size', 'Statistical Analysis Type');
+        $lustreElementFields = array('Supervisor', 'Project Level', 'Topic', 
+            'Statistical Analysis Type', 'Sample Size');
         foreach ($lustreElementFields as $lustreElementField){
             $lustreElementsTest = array($item->getElementTexts('LUSTRE', $lustreElementField));
             if ($lustreElementsTest[0] != NULL) {
