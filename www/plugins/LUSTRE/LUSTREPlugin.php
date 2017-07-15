@@ -70,15 +70,6 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
             array('id')) -> where ('element_set_id = ?', $DCElementSetID);
         $DCElementIDs= $db -> fetchCol($DCElementIDsSelect);
 
-        /* Removes the content of DC fields if LUSTRE element has value.
-        */
-        if($this->lustreFieldsFilled($item) == true) {
-            foreach ($DCElementIDs as $DCElementID) {
-                $db->delete('omeka_element_texts', array('record_id =' . $id, 
-                    'element_id =' . $DCElementID));
-            }
-        }
-
         /* Rules to map LUSTRE meta data to dublin core.
         */
         $mapping = array('Supervisor' => 'Identifier', 'Project Level' => 'Identifier',
@@ -89,13 +80,10 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
             array('id')) -> where ('name = ?', 'LUSTRE');
         $lustreElementSetID =  $db -> fetchOne($lustreElementSetIDSelect);
 
-        // Get Supervisor field.
-        $lustreElementSupervisorIDSelect = $db -> select() -> from (array('omeka_elements'), 
-            array('id')) -> where ('element_set_id = ?', $lustreElementSetID) 
-            -> where ('name = ?', 'Supervisor');
-        $lustreElementSubtitleID =  $db -> fetchOne($lustreElementSupervisorIDSelect);
-
         foreach ($mapping as $lustreField => $DCField) {
+
+            // TODO: Check fields for invalid input/reserved keywords
+
             $lustreElementTexts = $item->getElementTexts('LUSTRE', $lustreField);
 
             foreach ($lustreElementTexts as $lustreElementText){
@@ -109,47 +97,37 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
                     -> where ('name = ?', $lustreField);
                 $lustreID =  $db -> fetchOne($lustreElementIDSelect);
 
-                // HTML markup checking?
+                // Check if fields contain html
                 $htmlSelect = $db -> select() -> from (array('omeka_element_texts'), 
                     array('html')) -> where ('element_id = ?', $lustreID)
                     -> where ('record_id = ?', $id) -> where ('text = ?', $lustreElementText);
                 $html =  $db -> fetchOne($htmlSelect);
-
-
-                if ($lustreField == 'Supervisor' or $lustreField == 'Project Level' or
-                    $lustreField == 'Statistical Analysis Type') {
-                    // Call function to map fields to 'Identifier' DC field    
-                    $dcElementValues = array(
-                        'record_id' => $id, 'record_type' => 'Item',
-                        'element_id' => $dcID, 'html' => $html,
-                        'text' => $lustreElementText
-                    );
-                    $db->insert('element texts', $dcElementValues);
-                }
-                else if ($lustreField == 'Topic' or $lustreField == 'Sample Size') {
-                    // Call function to map field to 'Type' DC field
-                    $dcElementValues = array(
-                        'record_id' => $id, 'record_type' => 'Item',
-                        'element_id' => $dcID, 'html' => $html,
-                        'text' => $lustreElementText 
-                    );
-                    $db->insert('element texts', $dcElementValues);
-                }
-                else {
-                    $dcElementValues = array(
-                        'record_id' => $id, 'record_type' => 'Item',
-                        'element_id' => $dcID, 'html' => $html,
-                        'text' => $dcElementText);
-                    $db->insert('element texts', $dcElementValues);
-                }
                 
+                /* EXPERIMENTAL */
+
+                // Delete any previous LUSTRE elements in given field.
+                $db->queryBlock('DELETE FROM omeka_element_texts WHERE text LIKE \'' 
+                    . $lustreField . '%\'', ';');
+
+                // $db->queryBlock('DELETE FROM omeka_element_texts WHERE record_id = ' 
+                //    . $id, ';');
+
+                $dcElementValues = array(
+                    'record_id' => $id, 'record_type' => 'Item',
+                    'element_id' => $dcID, 'html' => $html,
+                    'text' => $lustreField . ': ' . $lustreElementText
+                );
+                $db->insert('element texts', $dcElementValues);
+
+                /* EXPERIMNETAL END */
+                              
             }
         }
     }
 
     public function filterAdminItemsFormTabs($tabs, $args) {
-        $ItemAdminOrder = array('Files' => '', 'Tags' => '', 'Item Type Metadata' => '', 
-            'Dublin Core' => '', 'LUSTRE' => '');
+        $ItemAdminOrder = array('Dublin Core' => '', 'LUSTRE' => '', 'Files' => '', 
+            'Tags' => '', 'Item Type Metadata' => '');
         return (array_merge ($ItemAdminOrder, $tabs));
     }
 
