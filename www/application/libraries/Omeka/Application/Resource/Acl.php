@@ -90,10 +90,10 @@ class Omeka_Application_Resource_Acl extends Zend_Application_Resource_ResourceA
         // Researchers can view and search items and collections that are not public.
         $acl->allow('researcher', array('Items', 'Collections', 'Search'), 'showNotPublic');
         // Contributors can add and tag items, edit or delete their own items, and see
-        // their items that are not public.
+        // their items that are not public. - LUSTRE: Can now make items public.
         $acl->allow('contributor', 'Items', array('add', 'tag', 'batch-edit', 'batch-edit-save',
                                                   'change-type', 'delete-confirm', 'editSelf',
-                                                  'deleteSelf', 'showSelfNotPublic'));
+                                                  'deleteSelf', 'showSelfNotPublic', 'makePublic'));
         // Contributors can edit their own files.
         $acl->allow('contributor', 'Files', 'editSelf');
         // Contributors have access to tag autocomplete.
