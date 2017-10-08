@@ -11,7 +11,7 @@
  *
  * @package SimplePages
  */
-class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Resource_Interface
+class LUSTREPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Resource_Interface
 {
     public $modified_by_user_id;
     public $created_by_user_id;
@@ -147,7 +147,7 @@ class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Re
      */
     public function getPotentialParentPages() 
     {
-        return $this->getTable('SimplePagesPage')->findPotentialParentPages($this->id);
+        return $this->getTable('LUSTREPage')->findPotentialParentPages($this->id);
     }
     
     /**
@@ -158,7 +158,7 @@ class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Re
     */
     public function getAncestors()
     {        
-        return $this->getTable('SimplePagesPage')->findAncestorPages($this->id);
+        return $this->getTable('LUSTREPage')->findAncestorPages($this->id);
     }
     
     
@@ -169,7 +169,7 @@ class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Re
     */
     public function getChildren()
     {
-        return $this->getTable('SimplePagesPage')->findChildrenPages($this->id);
+        return $this->getTable('LUSTREPage')->findChildrenPages($this->id);
     }
     
     public function getRecordUrl($action = 'show')
@@ -177,7 +177,7 @@ class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Re
         if ('show' == $action) {
             return public_url($this->slug);
         }
-        return array('module' => 'simple-pages', 'controller' => 'index', 
+        return array('module' => 'LUSTRE', 'controller' => 'index', 
                      'action' => $action, 'id' => $this->id);
     }
     
@@ -194,6 +194,6 @@ class SimplePagesPage extends Omeka_Record_AbstractRecord implements Zend_Acl_Re
     }
     public function getResourceId()
     {
-	return 'SimplePages_Page';
+	return 'LUSTRE_Page';
     }
 }

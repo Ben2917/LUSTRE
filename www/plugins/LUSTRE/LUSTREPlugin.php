@@ -2,12 +2,14 @@
 
 
 
-require_once dirname(__FILE__) . '/helpers/SimplePageFunctions.php';
+require_once dirname(__FILE__) . '/helpers/LUSTREFunctions.php';
 
 /**
  * LUSTRE Meta Data Plugin
  * Based on the BookCore plugin: https://github.com/hybrid-publishing-lab/BookCore
- * Covered under apache 2.0 license: http://www.apache.org/licenses/LICENSE-2.0.html 
+ * Covered under apache 2.0 license: http://www.apache.org/licenses/LICENSE-2.0.html
+ * and the SimplePages plugin:
+ * Covered under the **** license.
  * Modifications made by Ben Gooding
  */
 class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
@@ -15,9 +17,7 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
     /**
      * @var array Hooks for the plugin.
      */
-    protected $_hooks = array('install', 'uninstall', 'upgrade', 'initialize',
-        'define_acl', 'define_routes', 'config_form', 'config',
-        'html_purifier_form_submission', 'after_save_item');
+    protected $_hooks = array('install', 'uninstall', 'define_acl', 'define_routes', 'html_purifier_form_submission', 'after_save_item');
     
     /**
      * @var array Filters for the plugin.
@@ -31,7 +31,7 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
      * @var array Options and their default values.
      */
     protected $_options = array(
-        'simple_pages_filter_page_content' => '0'
+        'LUSTRE_filter_page_content' => '0'
     );
     
     /**
@@ -55,7 +55,7 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
         array(
             'name' => 'Topic',
             'description' => 'Should contain the sub-category of Psychology the project falls under'
-        ),
+        ,
         array(
             'name' => 'Statistical Analysis Type',
             'description' => 'The type of statistical analysis used in the project'
@@ -69,8 +69,9 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
 
         // Create the table.
         $db = $this->_db;
+        console_log($db->LUSTREPage);
         $sql = "
-        CREATE TABLE IF NOT EXISTS `$db->SimplePagesPage` (
+        CREATE TABLE IF NOT EXISTS `$db->LUSTREPage` (
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
           `modified_by_user_id` int(10) unsigned NOT NULL,
           `created_by_user_id` int(10) unsigned NOT NULL,
@@ -96,7 +97,7 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
         $db->query($sql);
         
         // Save an example page.
-        $page = new SimplePagesPage;
+        $page = new LUSTREPage;
         $page->modified_by_user_id = current_user()->id;
         $page->created_by_user_id = current_user()->id;
         $page->is_published = 1;
@@ -108,17 +109,17 @@ class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
 
 
 The LUSTRE project has been developed by 
-Dr John Towse (Department of Psychology, Lancaster University) [Maybe best not to have URL’s to web pages bacause these might change]
-Dr Rob Davies (Department of Psychology, Lancaster University
-Ben Gooding (School of Computing and Communications, Lancaster University)
+Dr John Towse (Department of Psychology, Lancaster University) </br>
+Dr Rob Davies (Department of Psychology, Lancaster University  </br>
+Ben Gooding (School of Computing and Communications, Lancaster University) </br>
 
-Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE
+Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE </br>
 
 Supported by a Teaching Development Grant from the Faculty of Science and Technology, Lancaster University. A previous version of this project was support by a CETL mini award from the Department of Maths and Statistics, Lancaster University
 </p>'; // Reading this from a file would be better
         $page->save();
 
-        $page = new SimplePagesPage;
+        $page = new LUSTREPage;
         $page->modified_by_user_id = current_user()->id;
         $page->created_by_user_id = current_user()->id;
         $page->is_published = 1;
@@ -152,79 +153,13 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         
         // Drop the table.
         $db = $this->_db;
-        $sql = "DROP TABLE IF EXISTS `$db->SimplePagesPage`";
+        $sql = "DROP TABLE IF EXISTS `$db->LUSTREPage`";
         $db->query($sql);
 
         $this->_uninstallOptions();
         
     }
     
-    /**
-     * Upgrade the plugin.
-     *
-     * @param array $args contains: 'old_version' and 'new_version'
-     */
-    public function hookUpgrade($args)
-    {
-        $oldVersion = $args['old_version'];
-        $newVersion = $args['new_version'];
-        $db = $this->_db;
-
-        // MySQL 5.7+ fix; must do first or else MySQL complains about any other ALTER
-        if ($oldVersion < '3.0.7') {
-            $db->query("ALTER TABLE `$db->SimplePagesPage` ALTER `inserted` SET DEFAULT '2000-01-01 00:00:00'");
-        }
-
-        if ($oldVersion < '1.0') {
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `is_published` )";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `inserted` ) ";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `updated` ) ";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `add_to_public_nav` ) ";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `created_by_user_id` ) ";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `modified_by_user_id` ) ";
-            $db->query($sql);    
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `order` INT UNSIGNED NOT NULL ";
-            $db->query($sql);
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `order` ) ";
-            $db->query($sql);
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `parent_id` INT UNSIGNED NOT NULL ";
-            $db->query($sql);
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `parent_id` ) ";
-            $db->query($sql);
-            
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `template` TINYTEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ";
-            $db->query($sql);
-        }
-
-        if ($oldVersion < '1.3') {
-            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `use_tiny_mce` TINYINT(1) NOT NULL";
-            $db->query($sql);
-        }
-
-        if ($oldVersion < '2.0') {
-            $db->query("ALTER TABLE `$db->SimplePagesPage` DROP `add_to_public_nav`");
-            delete_option('simple_pages_home_page_id');
-        }
-
-        if ($oldVersion < '3.0.2') {
-            $db->query("ALTER TABLE `$db->SimplePagesPage` MODIFY `text` MEDIUMTEXT COLLATE utf8_unicode_ci");
-        }
-    }
-
     /** 
     * After saving an item with data in the LUSTRE Element Set values are automatically
     * mapped on the Dublin Core Element Set. Preexisting DC values are deleted
@@ -322,14 +257,6 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
      * /
     
     /**
-     * Add the translations.
-     */
-    public function hookInitialize()
-    {
-        add_translation_source(dirname(__FILE__) . '/languages');
-    }
-
-    /**
      * Define the ACL.
      * 
      * @param Omeka_Acl
@@ -338,14 +265,14 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
     {
         $acl = $args['acl'];
         
-        $indexResource = new Zend_Acl_Resource('SimplePages_Index');
-        $pageResource = new Zend_Acl_Resource('SimplePages_Page');
+        $indexResource = new Zend_Acl_Resource('LUSTRE_Index');
+        $pageResource = new Zend_Acl_Resource('LUSTRE_Page');
         $acl->add($indexResource);
         $acl->add($pageResource);
 
-        $acl->allow(array('super', 'admin'), array('SimplePages_Index', 'SimplePages_Page'));
-        $acl->allow(null, 'SimplePages_Page', 'show');
-        $acl->deny(null, 'SimplePages_Page', 'show-unpublished');
+        $acl->allow(array('super', 'admin'), array('LUSTRE_Index', 'LUSTRE_Page'));
+        $acl->allow(null, 'LUSTRE_Page', 'show');
+        $acl->deny(null, 'LUSTRE_Page', 'show-unpublished');
     }
 
     /**
@@ -363,14 +290,14 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         $router = $args['router'];
 
         // Add custom routes based on the page slug.
-        $pages = get_db()->getTable('SimplePagesPage')->findAll();
+        $pages = get_db()->getTable('LUSTREPage')->findAll();
         foreach ($pages as $page) {
             $router->addRoute(
-                'simple_pages_show_page_' . $page->id, 
+                'LUSTRE_show_page_' . $page->id, 
                 new Zend_Controller_Router_Route(
                     $page->slug, 
                     array(
-                        'module'       => 'simple-pages', 
+                        'module'       => 'LUSTRE', 
                         'controller'   => 'page', 
                         'action'       => 'show', 
                         'id'           => $page->id
@@ -380,63 +307,21 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         }
     }
 
+    
     /**
-     * Display the plugin config form.
-     */
-    public function hookConfigForm()
-    {
-        require dirname(__FILE__) . '/config_form.php';
-    }
-
-    /**
-     * Set the options from the config form input.
-     */
-    public function hookConfig()
-    {
-        set_option('simple_pages_filter_page_content', (int)(boolean)$_POST['simple_pages_filter_page_content']);
-    }
-
-    /**
-     * Filter the 'text' field of the simple-pages form, but only if the 
-     * 'simple_pages_filter_page_content' setting has been enabled from within the
-     * configuration form.
-     * 
-     * @param array $args Hook args, contains:
-     *  'request': Zend_Controller_Request_Http
-     *  'purifier': HTMLPurifier
-     */
-    public function hookHtmlPurifierFormSubmission($args)
-    {
-        $request = Zend_Controller_Front::getInstance()->getRequest();
-        $purifier = $args['purifier'];
-
-        // If we aren't editing or adding a page in SimplePages, don't do anything.
-        if ($request->getModuleName() != 'simple-pages' or !in_array($request->getActionName(), array('edit', 'add'))) {
-            return;
-        }
-        
-        // Do not filter HTML for the request unless this configuration directive is on.
-        if (!get_option('simple_pages_filter_page_content')) {
-            return;
-        }
-        
-        $post = $request->getPost();
-        $post['text'] = $purifier->purify($post['text']); 
-        $request->setPost($post);
-    }
-
-    /**
-     * Add the Simple Pages link to the admin main navigation.
+     * Add the Edit Contact link to the admin main navigation.
      * 
      * @param array Navigation array.
      * @return array Filtered navigation array.
      */
     public function filterAdminNavigationMain($nav)
     {
+        console_log(url('edit-contact'));
+
         $nav[] = array(
-            'label' => __('Simple Pages'),
-            'uri' => url('simple-pages'),
-            'resource' => 'SimplePages_Index',
+            'label' => __('Edit Contact'),
+            'uri' => url('edit-contact'),
+            'resource' => 'LUSTRE_Index',
             'privilege' => 'browse'
         );
         return $nav;
@@ -450,7 +335,7 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
      */
     public function filterPublicNavigationMain($nav)
     {
-        $navLinks = simple_pages_get_links_for_children_pages(0, 0, 'order', true);
+        $navLinks = LUSTRE_get_links_for_children_pages(0, 0, 'order', true);
         $nav = array_merge($nav, $navLinks);
         return $nav;
     }
@@ -460,7 +345,7 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
      */
     public function filterSearchRecordTypes($recordTypes)
     {
-        $recordTypes['SimplePagesPage'] = __('Simple Page');
+        $recordTypes['LUSTREPage'] = __('LUSTRE Page');
         return $recordTypes;
     }
 
@@ -475,8 +360,9 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
     public function filterPageCachingWhitelist($whitelist)
     {
         // Add custom routes based on the page slug.
-        $pages = get_db()->getTable('SimplePagesPage')->findAll();
+        $pages = get_db()->getTable('LUSTREPage')->findAll();
         foreach($pages as $page) {
+            console_log("Page whitelisted");
             $whitelist['/' . trim($page->slug, '/')] = array('cache'=>true);
         }
             
@@ -500,7 +386,7 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         $record = $args['record'];
         $action = $args['action'];
 
-        if ($record instanceof SimplePagesPage) {
+        if ($record instanceof LUSTREPage) {
             $page = $record;
             if ($action == 'update' || $action == 'delete') {
                 $blacklist['/' . trim($page->slug, '/')] = array('cache'=>false);
@@ -511,8 +397,8 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
     }
     public function filterApiResources($apiResources)
     {
-	$apiResources['simple_pages'] = array(
-		'record_type' => 'SimplePagesPage',
+	$apiResources['LUSTRE'] = array(
+		'record_type' => 'LUSTREPage',
 		'actions'   => array('get','index'),
 	);	
        return $apiResources;
@@ -520,10 +406,10 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
     
     public function filterApiImportOmekaAdapters($adapters, $args)
     {
-        $simplePagesAdapter = new ApiImport_ResponseAdapter_Omeka_GenericAdapter(null, $args['endpointUri'], 'SimplePagesPage');
-        $simplePagesAdapter->setService($args['omeka_service']);
-        $simplePagesAdapter->setUserProperties(array('modified_by_user', 'created_by_user'));
-        $adapters['simple_pages'] = $simplePagesAdapter;
+        $LUSTREAdapter = new ApiImport_ResponseAdapter_Omeka_GenericAdapter(null, $args['endpointUri'], 'LUSTREPage');
+        $LUSTREAdapter->setService($args['omeka_service']);
+        $LUSTREAdapter->setUserProperties(array('modified_by_user', 'created_by_user'));
+        $adapters['LUSTRE'] = $LUSTREAdapter;
         return $adapters;
     }
     

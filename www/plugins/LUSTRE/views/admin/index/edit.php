@@ -1,7 +1,7 @@
 <?php
 queue_js_file('vendor/tiny_mce/tiny_mce');
-$head = array('bodyclass' => 'simple-pages primary', 
-              'title' => __('Simple Pages | Edit "%s"', metadata('simple_pages_page', 'title')));
+$head = array('bodyclass' => 'LUSTRE primary', 
+              'title' => __('LUSTRE | Edit "%s"', metadata('LUSTRE_page', 'title')));
 echo head($head);
 ?>
 
@@ -11,7 +11,7 @@ jQuery(window).load(function() {
     tinyMCE.init({
         // Assign TinyMCE a textarea:
         mode : 'exact',
-        elements: '<?php if ($simple_pages_page->use_tiny_mce) echo 'simple-pages-text'; ?>',
+        elements: '<?php if ($LUSTRE_page->use_tiny_mce) echo 'LUSTRE-text'; ?>',
         // Add plugins:
         plugins: 'media,paste,inlinepopups',
         // Configure theme:
@@ -26,11 +26,11 @@ jQuery(window).load(function() {
         convert_urls: false,
     });
     // Add or remove TinyMCE control.
-    jQuery('#simple-pages-use-tiny-mce').click(function() {
+    jQuery('#LUSTRE-use-tiny-mce').click(function() {
         if (jQuery(this).is(':checked')) {
-            tinyMCE.execCommand('mceAddControl', true, 'simple-pages-text');
+            tinyMCE.execCommand('mceAddControl', true, 'LUSTRE-text');
         } else {
-            tinyMCE.execCommand('mceRemoveControl', true, 'simple-pages-text');
+            tinyMCE.execCommand('mceRemoveControl', true, 'LUSTRE-text');
         }
     });
 });
@@ -38,9 +38,9 @@ jQuery(window).load(function() {
 
 <?php echo flash(); ?>
 <p><?php echo __('This page was created by <strong>%1$s</strong> on %2$s, and last modified by <strong>%3$s</strong> on %4$s.',
-    metadata('simple_pages_page', 'created_username'),
-    html_escape(format_date(metadata('simple_pages_page', 'inserted'), Zend_Date::DATETIME_SHORT)),
-    metadata('simple_pages_page', 'modified_username'), 
-    html_escape(format_date(metadata('simple_pages_page', 'updated'), Zend_Date::DATETIME_SHORT))); ?></p>
+    metadata('LUSTRE_page', 'created_username'),
+    html_escape(format_date(metadata('LUSTRE_page', 'inserted'), Zend_Date::DATETIME_SHORT)),
+    metadata('LUSTRE_page', 'modified_username'), 
+    html_escape(format_date(metadata('LUSTRE_page', 'updated'), Zend_Date::DATETIME_SHORT))); ?></p>
 <?php echo $form; ?>
 <?php echo foot(); ?>

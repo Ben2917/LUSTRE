@@ -1,12 +1,12 @@
 <?php 
 
-class Api_SimplePagesPage extends Omeka_Record_Api_AbstractRecordAdapter
+class Api_LUSTREPage extends Omeka_Record_Api_AbstractRecordAdapter
 {
 	public function getRepresentation(Omeka_Record_AbstractRecord $record)
 	{
 		$representation = array(
 		    'id' =>$record->id,
-		    'url' => $this->getResourceUrl("/simple_pages/{$record->id}"),
+		    'url' => $this->getResourceUrl("/LUSTRE/{$record->id}"),
 		    'is_published'        => (bool)$record->is_published,
 		    'title'               => $record->title,
 		    'slug'                => $record->slug,
@@ -39,8 +39,8 @@ class Api_SimplePagesPage extends Omeka_Record_Api_AbstractRecordAdapter
 		if($record->parent_id){
 		    $representation['parent'] = array(
 		        'id'  => $record->parent_id,
-		        'resource' => 'simple_pages',
-		        'url' => self::getResourceUrl("/simple_pages/{$record->parent_id}"),
+		        'resource' => 'LUSTRE',
+		        'url' => self::getResourceUrl("/LUSTRE/{$record->parent_id}"),
 		    ); 
 		}else{
 		    $representation['parent'] = null;

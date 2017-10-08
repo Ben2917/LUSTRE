@@ -11,7 +11,7 @@
  *
  * @package SimplePages
  */
-class SimplePagesPageTable extends Omeka_Db_Table
+class LUSTREPageTable extends Omeka_Db_Table
 {
     /**
      * Find all pages, ordered by slug name.
@@ -187,8 +187,8 @@ class SimplePagesPageTable extends Omeka_Db_Table
     public function getSelect()
     {
         $select = parent::getSelect();
-        $permissions = new Omeka_Db_Select_PublicPermissions('SimplePages_Page');
-        $permissions->apply($select, 'simple_pages_pages','created_by_user_id','is_published');
+        $permissions = new Omeka_Db_Select_PublicPermissions('LUSTRE_Page');
+        $permissions->apply($select, 'LUSTRE_pages','created_by_user_id','is_published');
         
         
         return $select;

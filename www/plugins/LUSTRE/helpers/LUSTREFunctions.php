@@ -22,11 +22,11 @@ function console_log($data) {
  * @param boolean Whether to return only published pages.
  * @return array The navigation links.
  */
-function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'order', 
+function LUSTRE_get_links_for_children_pages($parentId = null, $sort = 'order', 
     $requiresIsPublished = false)
 {
     if ($parentId === null) {
-        $parentPage = get_current_record('simple_pages_page', false);
+        $parentPage = get_current_record('LUSTRE_page', false);
         if ($parentPage) {
             $parentId = $parentPage->id;
         } else {
@@ -39,14 +39,14 @@ function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'or
         $findBy['is_published'] = $requiresIsPublished ? 1 : 0;
     }
 
-    $pages = get_db()->getTable('SimplePagesPage')->findBy($findBy);
+    $pages = get_db()->getTable('LUSTREPage')->findBy($findBy);
 
     $navLinks = array();
 
     foreach ($pages as $page) {
         $uri = public_url($page->slug);
 
-        $subNavLinks = simple_pages_get_links_for_children_pages($page->id, $sort, 
+        $subNavLinks = LUSTRE_get_links_for_children_pages($page->id, $sort, 
             $requiresIsPublished);
         if (count($subNavLinks) > 0) {
             $navLinks[] = array(
@@ -74,12 +74,12 @@ function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'or
 * @param boolean Whether to return only published pages.
 * @return string
 */
-function simple_pages_navigation($parentId = 0, $sort = 'order', $requiresIsPublished = true)
+function LUSTRE_navigation($parentId = 0, $sort = 'order', $requiresIsPublished = true)
 {
     $html = '';
-    $childPageLinks = simple_pages_get_links_for_children_pages($parentId, $sort, $requiresIsPublished);
+    $childPageLinks = LUSTRE_get_links_for_children_pages($parentId, $sort, $requiresIsPublished);
     if ($childPageLinks) {
-        $html .= '<div class="simple-pages-navigation">' . "\n";
+        $html .= '<div class="LUSTRE-navigation">' . "\n";
         $html .= nav($childPageLinks);
         $html .= '</div>' . "\n";
     }
@@ -94,18 +94,18 @@ function simple_pages_navigation($parentId = 0, $sort = 'order', $requiresIsPubl
  * @param string $separator The string used to separate each section of the breadcrumb.
  * @param boolean $includePage Whether to include the title of the current page.
  */
-function simple_pages_display_breadcrumbs($pageId = null, $seperator=' > ', $includePage=true)
+function LUSTRE_display_breadcrumbs($pageId = null, $seperator=' > ', $includePage=true)
 {
     $html = '';
 
     if ($pageId === null) {
-        $page = get_current_record('simple_pages_page', false);
+        $page = get_current_record('LUSTRE_page', false);
     } else {
-        $page = get_db()->getTable('SimplePagesPage')->find($pageId);
+        $page = get_db()->getTable('LUSTREPage')->find($pageId);
     }
 
     if ($page) {
-        $ancestorPages = get_db()->getTable('SimplePagesPage')->findAncestorPages($page->id);
+        $ancestorPages = get_db()->getTable('LUSTREPage')->findAncestorPages($page->id);
         $bPages = array_merge(array($page), $ancestorPages);
 
         // make sure all of the ancestors and the current page are published
@@ -135,16 +135,16 @@ function simple_pages_display_breadcrumbs($pageId = null, $seperator=' > ', $inc
     return $html;
 }
 
-function simple_pages_display_hierarchy($parentPageId = 0, $partialFilePath = 'index/browse-hierarchy-page.php')
+function LUSTRE_display_hierarchy($parentPageId = 0, $partialFilePath = 'index/browse-hierarchy-page.php')
 {
     $html = '';
-    $childrenPages = get_db()->getTable('SimplePagesPage')->findChildrenPages($parentPageId);
+    $childrenPages = get_db()->getTable('LUSTREPage')->findChildrenPages($parentPageId);
     if (count($childrenPages)) {        
         $html .= '<ul>';
         foreach($childrenPages as $childPage) {
             $html .= '<li>';
-            $html .= get_view()->partial($partialFilePath, array('simple_pages_page' => $childPage));
-            $html .= simple_pages_display_hierarchy($childPage->id, $partialFilePath);
+            $html .= get_view()->partial($partialFilePath, array('LUSTRE_page' => $childPage));
+            $html .= LUSTRE_display_hierarchy($childPage->id, $partialFilePath);
             $html .= '</li>';
         }
         $html .= '</ul>';
@@ -158,22 +158,22 @@ function simple_pages_display_hierarchy($parentPageId = 0, $partialFilePath = 'i
  * @param integer|null The id of the page. If null, it uses the current simple page.
  * @return SimplePagesPage|null
  */
-function simple_pages_earliest_ancestor_page($pageId)
+function LUSTRE_earliest_ancestor_page($pageId)
 {
     if ($pageId === null) {
-        $page = get_current_record('simple_pages_page');
+        $page = get_current_record('LUSTRE_page');
     } else {
-        $page = get_db()->getTable('SimplePagesPage')->find($pageId);
+        $page = get_db()->getTable('LUSTREPage')->find($pageId);
     }
 
-    $pageAncestors = get_db()->getTable('SimplePagesPage')->findAncestorPages($page->id);
+    $pageAncestors = get_db()->getTable('LUSTREPage')->findAncestorPages($page->id);
     return end($pageAncestors);
 }
 
-function simple_pages_get_parent_options($page)
+function LUSTRE_get_parent_options($page)
 {
     $valuePairs = array('0' => __('Main Page (No Parent)'));
-    $potentialParentPages = get_db()->getTable('SimplePagesPage')->findPotentialParentPages($page->id);
+    $potentialParentPages = get_db()->getTable('LUSTREPage')->findPotentialParentPages($page->id);
     foreach($potentialParentPages as $potentialParentPage) {
         if (trim($potentialParentPage->title) != '') {
             $valuePairs[$potentialParentPage->id] = $potentialParentPage->title;

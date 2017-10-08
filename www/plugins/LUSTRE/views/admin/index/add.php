@@ -1,8 +1,8 @@
 <?php
 
 queue_js_file('vendor/tiny_mce/tiny_mce');
-$head = array('bodyclass' => 'simple-pages primary', 
-              'title' => html_escape(__('Simple Pages | Add Page')));
+$head = array('bodyclass' => 'LUSTRE primary', 
+              'title' => html_escape(__('LUSTRE | Add Page')));
 echo head($head);
 ?>
 
@@ -12,7 +12,7 @@ jQuery(window).load(function() {
     tinyMCE.init({
         // Assign TinyMCE a textarea:
         mode : 'exact',
-        elements: '<?php if ($simple_pages_page->use_tiny_mce) echo 'simple-pages-text'; ?>',
+        elements: '<?php if ($LUSTRE_page->use_tiny_mce) echo 'LUSTRE-text'; ?>',
         // Add plugins:
         plugins: 'media,paste,inlinepopups',
         // Configure theme:
@@ -27,11 +27,11 @@ jQuery(window).load(function() {
         convert_urls: false,
     });
     // Add or remove TinyMCE control.
-    jQuery('#simple-pages-use-tiny-mce').click(function() {
+    jQuery('#LUSTRE-use-tiny-mce').click(function() {
         if (jQuery(this).is(':checked')) {
-            tinyMCE.execCommand('mceAddControl', true, 'simple-pages-text');
+            tinyMCE.execCommand('mceAddControl', true, 'LUSTRE-text');
         } else {
-            tinyMCE.execCommand('mceRemoveControl', true, 'simple-pages-text');
+            tinyMCE.execCommand('mceRemoveControl', true, 'LUSTRE-text');
         }
     });
 });
