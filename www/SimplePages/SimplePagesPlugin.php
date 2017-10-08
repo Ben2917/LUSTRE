@@ -1,77 +1,47 @@
 <?php
-
-
+/**
+ * Simple Pages
+ *
+ * @copyright Copyright 2008-2012 Roy Rosenzweig Center for History and New Media
+ * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
+ */
 
 require_once dirname(__FILE__) . '/helpers/SimplePageFunctions.php';
 
 /**
- * LUSTRE Meta Data Plugin
- * Based on the BookCore plugin: https://github.com/hybrid-publishing-lab/BookCore
- * Covered under apache 2.0 license: http://www.apache.org/licenses/LICENSE-2.0.html
- * and the SimplePages plugin:
- * Covered under the **** license.
- * Modifications made by Ben Gooding
+ * Simple Pages plugin.
  */
-class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin {
-
+class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin
+{
     /**
      * @var array Hooks for the plugin.
      */
-    protected $_hooks = array('install', 'uninstall', 'initialize',
+    protected $_hooks = array('install', 'uninstall',
         'define_acl', 'define_routes', 'config_form', 'config',
-        'html_purifier_form_submission', 'after_save_item');
-    
+        'html_purifier_form_submission');
+
     /**
      * @var array Filters for the plugin.
      */
-    protected $_filters = array('admin_items_form_tabs', 'admin_navigation_main',
+    protected $_filters = array('admin_navigation_main',
         'public_navigation_main', 'search_record_types', 'page_caching_whitelist',
         'page_caching_blacklist_for_record',
 	'api_resources', 'api_import_omeka_adapters');
-    
+
     /**
      * @var array Options and their default values.
      */
     protected $_options = array(
         'simple_pages_filter_page_content' => '0'
     );
-    
+
     /**
      * Install the plugin.
      */
-    public function hookInstall() {
-        
-        $elementSetMetadata = array(
-            'name'        => 'LUSTRE', 
-            'description' => 'Adds LUSTRE specific project information'
-        );
-        $elements = array(
-        array(
-            'name'  =>  'Supervisor',
-            'description' => 'Name of the project supervisor'
-        ),
-        array( // Do we need a post grad level?
-            'name' => 'Project Level',
-            'description' => 'Project levels should be entered as UG or MSC'
-        ),
-        array(
-            'name' => 'Topic',
-            'description' => 'Should contain the sub-category of Psychology the project falls under'
-        ),
-        array(
-            'name' => 'Statistical Analysis Type',
-            'description' => 'The type of statistical analysis used in the project'
-        ),
-        array(
-            'name' => 'Sample Size'
-        ));         
-        insert_element_set($elementSetMetadata, $elements);
-        
-        // PAGES
-
+    public function hookInstall()
+    {
         // Create the table.
         $db = $this->_db;
-        console_log($db->SimplePagesPage);
         $sql = "
         CREATE TABLE IF NOT EXISTS `$db->SimplePagesPage` (
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -111,11 +81,11 @@ class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin {
 
 
 The LUSTRE project has been developed by 
-Dr John Towse (Department of Psychology, Lancaster University) </br>
-Dr Rob Davies (Department of Psychology, Lancaster University  </br>
-Ben Gooding (School of Computing and Communications, Lancaster University) </br>
+Dr John Towse (Department of Psychology, Lancaster University) [Maybe best not to have URL’s to web pages bacause these might change]
+Dr Rob Davies (Department of Psychology, Lancaster University
+Ben Gooding (School of Computing and Communications, Lancaster University)
 
-Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE </br>
+Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE
 
 Supported by a Teaching Development Grant from the Faculty of Science and Technology, Lancaster University. A previous version of this project was support by a CETL mini award from the Department of Maths and Statistics, Lancaster University
 </p>'; // Reading this from a file would be better
@@ -142,128 +112,19 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         $page->save();
 
         $this->_installOptions();
-
-    }  
+    }
 
     /**
-    * Uninstall the plugin
-    */
-    public function hookUninstall() {
-        $db = get_db();
-        $elementSet = get_db()->getTable('ElementSet')->findByName('LUSTRE');
-        $elementSet->delete();
-        
+     * Uninstall the plugin.
+     */
+    public function hookUninstall()
+    {        
         // Drop the table.
         $db = $this->_db;
         $sql = "DROP TABLE IF EXISTS `$db->SimplePagesPage`";
         $db->query($sql);
 
         $this->_uninstallOptions();
-        
-    }
-    
-    /** 
-    * After saving an item with data in the LUSTRE Element Set values are automatically
-    * mapped on the Dublin Core Element Set. Preexisting DC values are deleted
-    */
-    public function hookAfterSaveItem($args) {   
-        $item = $args['record'];
-        $id = $item['id'];
-        $db = get_db();
-        $DCElementSetIDSelect = $db -> select() -> from (array('omeka_element_sets'), 
-            array('id')) -> where ('name = ?', 'Dublin Core');
-        $DCElementSetID =  $db -> fetchOne($DCElementSetIDSelect);
-        $DCElementIDsSelect = $db -> select() -> from (array('omeka_elements'), 
-            array('id')) -> where ('element_set_id = ?', $DCElementSetID);
-        $DCElementIDs= $db -> fetchCol($DCElementIDsSelect);
-
-        /* Rules to map LUSTRE meta data to dublin core.
-        */
-        $mapping = array('Supervisor' => 'Identifier', 'Project Level' => 'Identifier',
-            'Topic' => 'Type', 'Statistical Analysis Type' => 'Identifier', 
-            'Sample Size' => 'Source');
-        
-        $lustreElementSetIDSelect = $db -> select() -> from (array('omeka_element_sets'), 
-            array('id')) -> where ('name = ?', 'LUSTRE');
-        $lustreElementSetID =  $db -> fetchOne($lustreElementSetIDSelect);
-
-        foreach ($mapping as $lustreField => $DCField) {
-
-            // TODO: Check fields for invalid input/reserved keywords
-
-            $lustreElementTexts = $item->getElementTexts('LUSTRE', $lustreField);
-
-            foreach ($lustreElementTexts as $lustreElementText){
-                
-                $dcElementIDSelect = $db -> select() -> from (array('omeka_elements'), array('id')) 
-                    -> where ('element_set_id = ?', $DCElementSetID) 
-                    -> where ('name = ?', $DCField);
-                $dcID =  $db -> fetchOne($dcElementIDSelect);
-                $lustreElementIDSelect = $db -> select() -> from (array('omeka_elements'), 
-                    array('id')) -> where ('element_set_id = ?', $lustreElementSetID)
-                    -> where ('name = ?', $lustreField);
-                $lustreID =  $db -> fetchOne($lustreElementIDSelect);
-
-                // Check if fields contain html
-                $htmlSelect = $db -> select() -> from (array('omeka_element_texts'), 
-                    array('html')) -> where ('element_id = ?', $lustreID)
-                    -> where ('record_id = ?', $id) -> where ('text = ?', $lustreElementText);
-                $html =  $db -> fetchOne($htmlSelect);
-                
-                /* EXPERIMENTAL */
-
-                // Delete any previous LUSTRE elements in given field.
-                $db->queryBlock('DELETE FROM omeka_element_texts WHERE text LIKE \'' 
-                    . $lustreField . '%\'', ';');
-
-                // $db->queryBlock('DELETE FROM omeka_element_texts WHERE record_id = ' 
-                //    . $id, ';');
-
-                $dcElementValues = array(
-                    'record_id' => $id, 'record_type' => 'Item',
-                    'element_id' => $dcID, 'html' => $html,
-                    'text' => $lustreField . ': ' . $lustreElementText
-                );
-                $db->insert('element texts', $dcElementValues);
-
-                /* EXPERIMNETAL END */
-                              
-            }
-        }
-    }
-
-    public function filterAdminItemsFormTabs($tabs, $args) {
-        $ItemAdminOrder = array('Dublin Core' => '', 'LUSTRE' => '', 'Files' => '', 
-            'Tags' => '', 'Item Type Metadata' => '');
-        return (array_merge ($ItemAdminOrder, $tabs));
-    }
-
-
-    /**
-    * Returns true if any LUSTRE fields have been filled out. False otherwise.
-    */
-    public function lustreFieldsFilled($item){
-        $lustreElementFields = array('Supervisor', 'Project Level', 'Topic', 
-            'Statistical Analysis Type', 'Sample Size');
-        foreach ($lustreElementFields as $lustreElementField){
-            $lustreElementsTest = array($item->getElementTexts('LUSTRE', $lustreElementField));
-            if ($lustreElementsTest[0] != NULL) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * MORE PAGES FUNCTIONS
-     * /
-    
-    /**
-     * Add the translations.
-     */
-    public function hookInitialize()
-    {
-        add_translation_source(dirname(__FILE__) . '/languages');
     }
 
     /**
@@ -370,11 +231,12 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
      */
     public function filterAdminNavigationMain($nav)
     {
-        console_log(url('edit-contact'));
+
+        console_log(url('simple-pages'));
 
         $nav[] = array(
-            'label' => __('Edit Contact'),
-            'uri' => url('edit-contact'),
+            'label' => __('Simple Pages'),
+            'uri' => url('simple-pages'),
             'resource' => 'SimplePages_Index',
             'privilege' => 'browse'
         );
@@ -416,7 +278,6 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         // Add custom routes based on the page slug.
         $pages = get_db()->getTable('SimplePagesPage')->findAll();
         foreach($pages as $page) {
-            console_log("Page whitelisted");
             $whitelist['/' . trim($page->slug, '/')] = array('cache'=>true);
         }
             
@@ -466,5 +327,4 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         $adapters['simple_pages'] = $simplePagesAdapter;
         return $adapters;
     }
-    
 }

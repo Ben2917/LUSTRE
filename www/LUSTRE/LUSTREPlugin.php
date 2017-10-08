@@ -7,17 +7,15 @@ require_once dirname(__FILE__) . '/helpers/SimplePageFunctions.php';
 /**
  * LUSTRE Meta Data Plugin
  * Based on the BookCore plugin: https://github.com/hybrid-publishing-lab/BookCore
- * Covered under apache 2.0 license: http://www.apache.org/licenses/LICENSE-2.0.html
- * and the SimplePages plugin:
- * Covered under the **** license.
+ * Covered under apache 2.0 license: http://www.apache.org/licenses/LICENSE-2.0.html 
  * Modifications made by Ben Gooding
  */
-class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin {
+class LUSTREPlugin extends Omeka_Plugin_AbstractPlugin {
 
     /**
      * @var array Hooks for the plugin.
      */
-    protected $_hooks = array('install', 'uninstall', 'initialize',
+    protected $_hooks = array('install', 'uninstall', 'upgrade', 'initialize',
         'define_acl', 'define_routes', 'config_form', 'config',
         'html_purifier_form_submission', 'after_save_item');
     
@@ -71,7 +69,6 @@ class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin {
 
         // Create the table.
         $db = $this->_db;
-        console_log($db->SimplePagesPage);
         $sql = "
         CREATE TABLE IF NOT EXISTS `$db->SimplePagesPage` (
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -111,11 +108,11 @@ class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin {
 
 
 The LUSTRE project has been developed by 
-Dr John Towse (Department of Psychology, Lancaster University) </br>
-Dr Rob Davies (Department of Psychology, Lancaster University  </br>
-Ben Gooding (School of Computing and Communications, Lancaster University) </br>
+Dr John Towse (Department of Psychology, Lancaster University) [Maybe best not to have URL’s to web pages bacause these might change]
+Dr Rob Davies (Department of Psychology, Lancaster University
+Ben Gooding (School of Computing and Communications, Lancaster University)
 
-Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE </br>
+Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE
 
 Supported by a Teaching Development Grant from the Faculty of Science and Technology, Lancaster University. A previous version of this project was support by a CETL mini award from the Department of Maths and Statistics, Lancaster University
 </p>'; // Reading this from a file would be better
@@ -162,6 +159,72 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         
     }
     
+    /**
+     * Upgrade the plugin.
+     *
+     * @param array $args contains: 'old_version' and 'new_version'
+     */
+    public function hookUpgrade($args)
+    {
+        $oldVersion = $args['old_version'];
+        $newVersion = $args['new_version'];
+        $db = $this->_db;
+
+        // MySQL 5.7+ fix; must do first or else MySQL complains about any other ALTER
+        if ($oldVersion < '3.0.7') {
+            $db->query("ALTER TABLE `$db->SimplePagesPage` ALTER `inserted` SET DEFAULT '2000-01-01 00:00:00'");
+        }
+
+        if ($oldVersion < '1.0') {
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `is_published` )";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `inserted` ) ";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `updated` ) ";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `add_to_public_nav` ) ";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `created_by_user_id` ) ";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `modified_by_user_id` ) ";
+            $db->query($sql);    
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `order` INT UNSIGNED NOT NULL ";
+            $db->query($sql);
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `order` ) ";
+            $db->query($sql);
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `parent_id` INT UNSIGNED NOT NULL ";
+            $db->query($sql);
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD INDEX ( `parent_id` ) ";
+            $db->query($sql);
+            
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `template` TINYTEXT CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL ";
+            $db->query($sql);
+        }
+
+        if ($oldVersion < '1.3') {
+            $sql = "ALTER TABLE `$db->SimplePagesPage` ADD `use_tiny_mce` TINYINT(1) NOT NULL";
+            $db->query($sql);
+        }
+
+        if ($oldVersion < '2.0') {
+            $db->query("ALTER TABLE `$db->SimplePagesPage` DROP `add_to_public_nav`");
+            delete_option('simple_pages_home_page_id');
+        }
+
+        if ($oldVersion < '3.0.2') {
+            $db->query("ALTER TABLE `$db->SimplePagesPage` MODIFY `text` MEDIUMTEXT COLLATE utf8_unicode_ci");
+        }
+    }
+
     /** 
     * After saving an item with data in the LUSTRE Element Set values are automatically
     * mapped on the Dublin Core Element Set. Preexisting DC values are deleted
@@ -370,11 +433,9 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
      */
     public function filterAdminNavigationMain($nav)
     {
-        console_log(url('edit-contact'));
-
         $nav[] = array(
-            'label' => __('Edit Contact'),
-            'uri' => url('edit-contact'),
+            'label' => __('Simple Pages'),
+            'uri' => url('simple-pages'),
             'resource' => 'SimplePages_Index',
             'privilege' => 'browse'
         );
@@ -416,7 +477,6 @@ LUSTRE builds on the omeka platform providing a free, flexible, and open source 
         // Add custom routes based on the page slug.
         $pages = get_db()->getTable('SimplePagesPage')->findAll();
         foreach($pages as $page) {
-            console_log("Page whitelisted");
             $whitelist['/' . trim($page->slug, '/')] = array('cache'=>true);
         }
             

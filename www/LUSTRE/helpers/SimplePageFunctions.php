@@ -6,13 +6,6 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
  */
 
-function console_log($data) {
-    echo '<script>';
-    echo 'console.log(' . json_encode($data) . ')';
-    echo '</script>';
-}
-
-
 /**
  * Get the public navigation links for children pages of a parent page.
  *
@@ -22,8 +15,7 @@ function console_log($data) {
  * @param boolean Whether to return only published pages.
  * @return array The navigation links.
  */
-function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'order', 
-    $requiresIsPublished = false)
+function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'order', $requiresIsPublished = false)
 {
     if ($parentId === null) {
         $parentPage = get_current_record('simple_pages_page', false);
@@ -46,8 +38,7 @@ function simple_pages_get_links_for_children_pages($parentId = null, $sort = 'or
     foreach ($pages as $page) {
         $uri = public_url($page->slug);
 
-        $subNavLinks = simple_pages_get_links_for_children_pages($page->id, $sort, 
-            $requiresIsPublished);
+        $subNavLinks = simple_pages_get_links_for_children_pages($page->id, $sort, $requiresIsPublished);
         if (count($subNavLinks) > 0) {
             $navLinks[] = array(
                 'label' => $page->title,
