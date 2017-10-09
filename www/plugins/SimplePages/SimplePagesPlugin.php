@@ -91,6 +91,28 @@ c) LUSTRE offers a project repository that acts as an informational resource tha
 LUSTRE builds on the omeka platform providing a free, flexible, and open source web-publishing platform for the display of digital collections and exhibitions</p>';
         $page->save();
 
+	$page = new SimplePagesPage;
+        $page->modified_by_user_id = current_user()->id;
+        $page->created_by_user_id = current_user()->id;
+        $page->is_published = 1;
+        $page->parent_id = 0;
+        $page->title = 'More Info and Contact';
+        $page->slug = 'contact';
+        $page->text = '<p>Communication about content, requests and additions to this catalogue can be addressed to</br>
+“psych_datasets@lancaster.ac.uk"</br></br>
+
+
+The LUSTRE project has been developed by</br> 
+Dr John Towse (Department of Psychology, Lancaster University)</br>
+Dr Rob Davies (Department of Psychology, Lancaster University)</br>
+Ben Gooding (School of Computing and Communications, Lancaster University)</br></br>
+
+Code development work for the project is hosted at: https://github.com/Ben2917/LUSTRE</br></br>
+
+Supported by a Teaching Development Grant from the Faculty of Science and Technology, Lancaster University. A previous version of this project was support by a CETL mini award from the Department of Maths and Statistics, Lancaster University
+</p>';
+        $page->save();
+
         $this->_installOptions();
     }
 
