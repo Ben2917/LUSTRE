@@ -1,8 +1,9 @@
 <?php
 /**
- * Simple Pages
+ * Simple Pages - LUSTRE Edition
  *
  * @copyright Copyright 2008-2012 Roy Rosenzweig Center for History and New Media
+ * Modified by Ben Gooding, School of Computing and Communications, Lancaster University
  * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
  */
 
@@ -76,8 +77,7 @@ class SimplePagesPlugin extends Omeka_Plugin_AbstractPlugin
         $page->parent_id = 0;
         $page->title = 'About';
         $page->slug = 'about';
-        $page->text = '<p>About</br></br>
-
+        $page->text = '<p>
 Welcome to LUSTRE. LUSTRE stands for Lancaster University STatistics REsources, and is an online catalog and repository designed to encourage best practice in data management and open data for students in Psychology and related disciplines. LUSTRE holds project information and digital resources.</br></br>
 
 LUSTRE has been designed to meet several teaching and research aims:</br></br>
