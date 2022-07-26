@@ -15,7 +15,7 @@
     <!-- Featured Collection -->
     <div id="featured-collection" class="featured">
         <!-- <h2><?php echo __('Featured Collection'); ?></h2> -->
-        <h2>Fetured Topic</h2> <!-- LUSTRE SPECIFIC CHANGE -->
+        <h2>Featured Topic</h2> <!-- LUSTRE SPECIFIC CHANGE -->
         <?php echo random_featured_collection(); ?>
     </div><!-- end featured collection -->
     <?php endif; ?>
